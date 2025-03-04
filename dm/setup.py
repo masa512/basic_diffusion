@@ -6,8 +6,5 @@ setup(
     packages=find_packages(),  # Finds "project" automatically
     install_requires=[
         "numpy",  # Add dependencies here
-        "scipy",
-        "torch",
-        "torchaudio"
-    ]
+        "scipy"]
 )

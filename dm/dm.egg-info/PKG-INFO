@@ -1,10 +1,5 @@
 Metadata-Version: 2.1
 Name: dm
 Version: 0.0.1
-Summary: UNKNOWN
-Home-page: UNKNOWN
-License: UNKNOWN
-Platform: UNKNOWN
-
-UNKNOWN
-
+Requires-Dist: numpy
+Requires-Dist: scipy
