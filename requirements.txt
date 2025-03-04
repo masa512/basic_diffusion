@@ -1,0 +1,4 @@
+# Install your local module (editable mode)
+-e ./dm
+
+# Install the rest
