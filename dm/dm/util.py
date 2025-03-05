@@ -2,7 +2,7 @@ from sklearn.datasets import make_swiss_roll
 from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
-from dm.fwd_diffusion import closed_form_forward_target
+from dm.fwd_diffusion import alpha_beta_scheduler,closed_form_forward_target
 
 
 
@@ -46,9 +46,8 @@ class diffusion_dataset(Dataset):
 
     ---Outputs---
     data_tuple (tuple) : 
-      - 0: time (int) - random time index
-      - 1: x (torch.tensor(n,ndim)) - clean input
-      - 2: x_t (torch.tensor(n,ndim)) - dirty output
+      - 0: x_t (torch.tensor(n,ndim)) - dirty output
+      - 1: time (int) - random time index
     """
     self.data = data
     self.Tmax = Tmax
@@ -76,10 +75,10 @@ class diffusion_dataset(Dataset):
     x_t = closed_form_forward_target(x,t,self.beta_min,self.beta_max,self.Tmax)
     
     # Convert all to necessary format and return as tuple
-    x_0_tensor = torch.tensor(x).to(torch.float32)
+    #x_0_tensor = torch.tensor(x).to(torch.float32)
     t_tensor = torch.tensor(t).view(1).to(torch.float32)/(self.Tmax-1)
     x_t_tensor = torch.tensor(x_t).to(torch.float32)
-    output_sample = (x_0_tensor,t_tensor,x_t_tensor)
+    output_sample = (x_t_tensor,t_tensor)
     return output_sample
 
 
@@ -117,21 +116,4 @@ def dataloader_wrapper(dataset,batch_size=1,shuffle=True):
 
   dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=shuffle)
   return dataloader
-
-############# Beta Scheduler ################################
-
-def beta_scheduler(Tmax = 1000,beta_min = 1e-4,beta_max = 3e-3):
-    """
-    Evaluates all betas possible and returns as np.array
-
-    ---Input---
-    Tmax : (int) Maximum iteration
-    beta_min/beta_max : (int) Max and min of beta values
-
-    ---Output---
-    betas : (np.array Tmax,) - Scheduled beta
-    """
-
-    betas = np.linspace(start = beta_min, end = beta_max, num = Tmax)
-    return betas
 

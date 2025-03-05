@@ -4,8 +4,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+################### ARCHITECTURE ######################################
+
 # Define a simple neural network for DDPM
-class simple_DDPM(nn.Module):
+class DDPM_model(nn.Module):
 
   # Constructor
   def __init__(self, input_dim, hidden_dim=256, time_emb_dim=128):
@@ -52,9 +54,48 @@ class simple_DDPM(nn.Module):
 
     return n_pred
 
+######################## TRAIN, TEST, SAMPLE #########################
 
-def ddpm(model,trainloader,optimizer,n_epochs = 10):
-  """
-  Forward Operation
-  """
-  return None
+def train_ddpm(model,trainloader,optimizer,n_epochs = 10,device="cuda" if torch.cuda.is_available() else "cpu"):
+    """
+    Forward Operation
+
+    ---Input---
+    model : (nn.Module) DDPM Model
+    trainloader : (torch.util.dataloader) train dataloader
+    optimizer : (torch.optim) optimizer
+    n_epochs : (int) Number of repeats per batch
+
+    ---Output---
+    """
+    model.to(device)
+    model.train()
+    loss_fn = nn.MSELoss()  # Loss function for noise prediction
+    
+    for epoch in range(n_epochs):
+        total_loss = 0.0
+        
+        for batch in trainloader:
+            x, t = batch  # Load batch of data (noisy inputs, timesteps)
+            x, t = x.to(device), t.to(device)
+            
+            optimizer.zero_grad()  # Zero gradients
+            
+            noise_pred = model(x, t)  # Predict noise
+            target_noise = torch.randn_like(x).to(device)  # Ground truth noise (random normal noise)
+            
+            loss = loss_fn(noise_pred, target_noise)  # Compute loss
+            loss.backward()  # Backpropagate
+            optimizer.step()  # Update model parameters
+            
+            total_loss += loss.item()
+        
+        print(f"Epoch {epoch + 1}/{n_epochs}, Loss: {total_loss / len(n_epochs)}")
+
+
+
+    
+
+  
+
+    return None
