@@ -118,4 +118,20 @@ def dataloader_wrapper(dataset,batch_size=1,shuffle=True):
   dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=shuffle)
   return dataloader
 
+############# Beta Scheduler ################################
+
+def beta_scheduler(Tmax = 1000,beta_min = 1e-4,beta_max = 3e-3):
+    """
+    Evaluates all betas possible and returns as np.array
+
+    ---Input---
+    Tmax : (int) Maximum iteration
+    beta_min/beta_max : (int) Max and min of beta values
+
+    ---Output---
+    betas : (np.array Tmax,) - Scheduled beta
+    """
+
+    betas = np.linspace(start = beta_min, end = beta_max, num = Tmax)
+    return betas
 
