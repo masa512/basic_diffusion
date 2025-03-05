@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from dm.fwd_diffusion import closed_form_forward_target
 
 # Define a simple neural network for DDPM
 class simple_DDPM(nn.Module):
@@ -33,5 +34,20 @@ class simple_DDPM(nn.Module):
   def forward(self,x,t):
     """
     --- INPUT ---
-    x (torch.tensor(n_batch,))
+    x (torch.tensor(n_batch,self.input_dim)) : Noisy input
+    t (torch.tensor(n_batch,1)) : Time index
+
+    --- RETURNS ---
+    n_pred (torch.tensor(n_batch,self.input_dim)) : Predicted noise
     """
+
+    # First the embedding of time
+    time_emb = self.t_embedding(t)
+
+    # Concatenate the time embedding with the input data
+    x = torch.cat([x, time_emb], dim=-1)
+
+    # Pass the cat data into the main model
+    n_pred = self.model(x)
+
+    return n_pred
