@@ -58,7 +58,7 @@ class DDPM_model(nn.Module):
 
 def train_ddpm(model,trainloader,optimizer,n_epochs = 10,device="cuda" if torch.cuda.is_available() else "cpu"):
     """
-    Forward Operation
+    Training DDPM
 
     ---Input---
     model : (nn.Module) DDPM Model
@@ -90,7 +90,41 @@ def train_ddpm(model,trainloader,optimizer,n_epochs = 10,device="cuda" if torch.
             
             total_loss += loss.item()
         
-        print(f"Epoch {epoch + 1}/{n_epochs}, Loss: {total_loss / len(n_epochs)}")
+        print(f"Epoch {epoch + 1}/{n_epochs}, Loss: {total_loss / len(trainloader)}")
+
+def test_ddpm(model,testloader,device="cuda" if torch.cuda.is_available() else "cpu"):
+    """
+    Testing DDPM
+
+    ---Input---
+    model : (nn.Module) DDPM Model
+    testloader : (torch.util.dataloader) test dataloader
+
+    ---Output---
+    """
+    # Load model and set to eval mode
+    model.to(device)
+    model.eval()
+
+    # Initialize loss
+    loss_fn = nn.MSELoss()  # Loss function for noise prediction
+    total_loss = 0.0
+
+    with torch.no_grad():
+
+      for batch in testloader:
+            x, t = batch  # Load batch of data (noisy inputs, timesteps)
+            x, t = x.to(device), t.to(device)
+            
+            noise_pred = model(x, t)  # Predict noise
+            target_noise = torch.randn_like(x).to(device)  # Ground truth noise (random normal noise)
+            
+            loss = loss_fn(noise_pred, target_noise)  # Compute loss
+            total_loss += loss.item()
+    
+    print(f"Test Loss: {total_loss / len(trainloader)}")
+
+
 
 
 
