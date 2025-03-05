@@ -1,4 +1,7 @@
 # ddpm.py
-from .simple_network import simple_DDPM
+from dm.simple_network import simple_DDPM
 
-def ddpm(data,)
+def ddpm(model,trainloader,optimizer,n_epochs = 10):
+  """
+  Forward Operation
+  """

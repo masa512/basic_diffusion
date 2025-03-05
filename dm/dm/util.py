@@ -1,8 +1,9 @@
 from sklearn.datasets import make_swiss_roll
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
 from dm.fwd_diffusion import closed_form_forward_target
+
 
 
 ############ DATASET ###############
@@ -81,6 +82,40 @@ class diffusion_dataset(Dataset):
     output_sample = (x_0_tensor,t_tensor,x_t_tensor)
     return output_sample
 
-    
+
+############## DATASET/DATALOADER METHODS ####################
+
+def data_split(dataset,train_rate,shuffle=True):
+  """
+  Splits dataset into training/test set
+  
+  ---Input---
+  dataset (torch.data.dataset) : Dataset created
+  train_rate (double) : train proportion (0,1)
+  shiffle (bool) : Whether to shuffle data or not
+
+  ---Output---
+  train_set (torch.data.dataset)
+  test_set (torch.data.dataset)
+  """
+
+  train_set, test_set = torch.utils.data.random_split(dataset, [train_rate, 1.0-train_rate])
+  return train_set, test_set
+
+def dataloader_wrapper(dataset,batch_size=1,shuffle=True):
+  """
+  Wrapper for dataloader
+
+  ---Input---
+  dataset (torch.data.dataset) : Dataset created
+  batch_size (int) : Batch size
+  shiffle (bool) : Whether to shuffle data or not
+
+  ---Output---
+  dataloader (torch.data.DataLoader) : Output dataloader
+  """
+
+  dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=shuffle)
+  return dataloader
 
 
