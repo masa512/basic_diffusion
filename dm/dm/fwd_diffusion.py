@@ -1,5 +1,4 @@
 import numpy as np
-from dm.util import swiss_roll_wrapper
 
 def fwd_diffusion(data,beta_min = 1e-4, beta_max = 0.02, T = 40, n_hist = 1):
     """
