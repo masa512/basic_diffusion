@@ -5,8 +5,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from dm.fwd_diffusion import alpha_beta_scheduler
-
 ################### ARCHITECTURE ######################################
+# Simple Network They say
+class SimpleNN(nn.Module):
+    def __init__(self, input_dim=2, hidden_dim=64):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(input_dim + 1, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim),
+        )
+
+    def forward(self, x, t):
+        input_data = torch.hstack([x, t])
+        return self.net(input_data)
 
 # Define a simple neural network for DDPM
 class DDPM_model(nn.Module):
@@ -140,7 +158,7 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
     X_0 : Original sample predicted
     """
     # Save States
-    states = [i for i in range(Tmax) if i % 100 == 0]
+    states = [i for i in range(Tmax) if i % 10 == 0]
     saved_frame = []
     # Load the model for evaluation
     model.to(device)
@@ -185,10 +203,3 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
               saved_frame.append(X_t.detach().numpy())
 
     return saved_frame 
-
-
-    
-
-  
-
-    return None
