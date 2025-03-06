@@ -158,7 +158,7 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
     X_0 : Original sample predicted
     """
     # Save States
-    states = [i for i in range(Tmax) if i % 10 == 0]
+    states = [k for k in range(1,Tmax)]
     saved_frame = []
     # Load the model for evaluation
     model.to(device)
@@ -186,7 +186,6 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
 
             beta_geom_t = (1-alpha_geom_t_prev)/np.sqrt(1-alpha_geom_t) * beta_t
             
-
             # model prediction of noise
             X_t = X_t.to(device=device)
             eps_t = model(X_t,t_tensor)

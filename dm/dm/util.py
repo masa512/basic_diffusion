@@ -28,10 +28,12 @@ def swiss_roll_wrapper(n_samples = 100,
     assert(dim in (2,3)), "Wrong dimension inquiry"
 
     # use the sklearn function
-    data = make_swiss_roll(n_samples=n_samples, noise=sigma_n, random_state=random_state)[0]
+    x = make_swiss_roll(n_samples=n_samples, noise=sigma_n, random_state=random_state)[0][:,[0,2]]
 
+    # Normalize value
+    data = (x - x.mean()) / x.std()
     # check dimension to return
-    return data if dim == 3 else data[:,[0,2]]
+    return data if dim == 3 else data
 
 ############# DATASET OBJ ###################
 
@@ -67,17 +69,15 @@ class diffusion_dataset(Dataset):
     # Apply transformation if provided
     if self.transforms:
       for trans in self.transforms:
-        sample = trans(sample)
-        print("Transformed to Torch")
-
+        x = trans(x)
     # Extract random index and scale by self.Tmax
-    t = torch.randn(size = (1,self.Tmax))
+    t = torch.randint(0, self.Tmax,size=(1,)).item()
 
     # Apply the closed form diffusion
     x_t,eps = closed_form_forward_target_torch(x,t,self.beta_min,self.beta_max,self.Tmax)
     
     # Convert all to necessary format and return as tuple
-    t_tensor = t.view(1).to(torch.float32)#/(self.Tmax-1)
+    t_tensor = torch.tensor([t]).to(torch.float32)/(self.Tmax-1)
     x_t_tensor = x_t.to(torch.float32)
     eps_tensor = eps.to(torch.float32)
 
