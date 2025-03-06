@@ -68,7 +68,7 @@ class diffusion_dataset(Dataset):
     if self.transforms:
       for trans in self.transforms:
         sample = trans(sample)
-        "Transformed to Torch"
+        print("Transformed to Torch")
 
     # Extract random index and scale by self.Tmax
     t = torch.randn(size = (1,self.Tmax))
