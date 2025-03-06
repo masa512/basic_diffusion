@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 ############# Beta Scheduler ################################
 
@@ -16,6 +17,22 @@ def alpha_beta_scheduler(Tmax = 1000,beta_min = 1e-4,beta_max = 3e-3):
 
     betas = np.linspace(start = beta_min, stop = beta_max, num = Tmax)
     alphas = 1 - betas
+    return alphas,betas
+  
+def alpha_beta_scheduler_torch(Tmax = 1000,beta_min = 1e-4,beta_max = 3e-3):
+    """
+    Evaluates all betas/alphas possible and returns as np.array (Torch V)
+
+    ---Input---
+    Tmax : (int) Maximum iteration
+    beta_min/beta_max : (int) Max and min of beta values
+
+    ---Output---
+    betas : (np.array Tmax,) - Scheduled beta
+    """
+
+    betas = torch.linspace(start = beta_min, end = beta_max, steps = Tmax)
+    alphas = 1.0 - betas
     return alphas,betas
 
 ################### Forward DIFFUSION #############################
@@ -67,6 +84,9 @@ def fwd_diffusion(data,beta_min = 1e-4, beta_max = 0.02, T = 40, n_hist = 1):
     
     return data_hist,idx_list
 
+
+############################## CLOSED FORM FORWARD STEP ###############################################
+
 def closed_form_forward_target(data, t = 0,beta_min = 1e-4, beta_max = 0.02, Tmax = 1000):
     """
     This function directly transforms the original data x_0 to t-th stage forward transform (close-form)
@@ -102,6 +122,45 @@ def closed_form_forward_target(data, t = 0,beta_min = 1e-4, beta_max = 0.02, Tma
     x_t = np.sqrt(alpha_geom_t) * data + np.sqrt(1-alpha_geom_t) * eps
 
     return x_t, eps
+
+
+def closed_form_forward_target_torch(data, t = 0,beta_min = 1e-4, beta_max = 0.02, Tmax = 1000):
+    """
+    This function directly transforms the original data x_0 to t-th stage forward transform (close-form)
+    linear variance schedule is used (Torch)
+
+    -Input-
+    data (n_dim,) : Single Input data 
+    beta_min,beta_max (double) : Bound for beta for variance scheduling
+    t (int) : Target iteration
+    Tmax (int) : Max iteration
+
+    -Output-
+    target_data (n_dim,) : Single output data at epoch t 
+    eps (n_dim,) : Noise used to distort (shall be predicted from NN)
+    """
+    # Initialize beta and alpha
+    alphas,betas = alpha_beta_scheduler(Tmax = Tmax, beta_min = beta_min, beta_max = beta_max)
+
+    # Dim
+    n_dim = data.size[0]
+
+    # First extract single beta and get alpha
+    beta_t = betas[t]
+    alpha_t = alphas[t]
+
+    # Products to get alpha_geom_t
+    alpha_geom_t = torch.prod(alphas[:t], dim=0)
+
+    # Epsilon
+    eps = torch.randn(size=(n_dim,))
+    
+    # Evaluate x_t
+    x_t = torch.sqrt(alpha_geom_t) * data + torch.sqrt(1-alpha_geom_t) * eps
+
+    return x_t, eps
+
+
 
 
 
