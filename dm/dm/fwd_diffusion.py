@@ -80,6 +80,7 @@ def closed_form_forward_target(data, t = 0,beta_min = 1e-4, beta_max = 0.02, T =
 
     -Output-
     target_data (n_dim,) : Single output data at epoch t 
+    eps (n_dim,) : Noise used to distort (shall be predicted from NN)
     """
     # Initialize beta and alpha
     alphas,betas = alpha_beta_scheduler(Tmax = T,beta_min = beta_min,beta_max = beta_max)
@@ -100,7 +101,7 @@ def closed_form_forward_target(data, t = 0,beta_min = 1e-4, beta_max = 0.02, T =
     # Evaluate x_t
     x_t = np.sqrt(alpha_geom_t) * data + np.sqrt(1-alpha_geom_t) * eps
 
-    return x_t
+    return x_t,eps
 
 
 

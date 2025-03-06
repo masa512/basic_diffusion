@@ -48,6 +48,7 @@ class diffusion_dataset(Dataset):
     data_tuple (tuple) : 
       - 0: x_t (torch.tensor(n,ndim)) - dirty output
       - 1: time (int) - random time index
+      - 2: eps (torch.tensor(n,ndim)) - the same noise used to distort
     """
     self.data = data
     self.Tmax = Tmax
@@ -72,13 +73,15 @@ class diffusion_dataset(Dataset):
     t = (np.random.randint(1,self.Tmax)-1)
     
     # Apply the closed form diffusion
-    x_t = closed_form_forward_target(x,t,self.beta_min,self.beta_max,self.Tmax)
+    x_t,eps = closed_form_forward_target(x,t,self.beta_min,self.beta_max,self.Tmax)
     
     # Convert all to necessary format and return as tuple
     #x_0_tensor = torch.tensor(x).to(torch.float32)
     t_tensor = torch.tensor(t).view(1).to(torch.float32)/(self.Tmax-1)
     x_t_tensor = torch.tensor(x_t).to(torch.float32)
-    output_sample = (x_t_tensor,t_tensor)
+    eps_tensor = torch.tensor(eps).to(torch.float32)
+
+    output_sample = (x_t_tensor,t_tensor,eps_tensor)
     return output_sample
 
 
