@@ -3,7 +3,8 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
 from dm.fwd_diffusion import alpha_beta_scheduler_torch,closed_form_forward_target_torch
-
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 
 ############ DATASET ###############
@@ -119,5 +120,56 @@ def dataloader_wrapper(dataset,batch_size=1,shuffle=True):
 
   dataloader = DataLoader(dataset,batch_size=batch_size,shuffle=shuffle)
   return dataloader
+
+
+################# PLOT RELATED #################################
+
+def create_scatter_animation(data_seq,save_path = ".", title = " " ,reverse = False):
+    """
+    Creates and saves animation from plots
+
+    ---Input---
+    data_seq : list of np.array(n_samples,n_dim) for scatter data
+    save_path : (str) folder where to save the animation
+    title : (str) Title to the plot
+    reverse : (bool) whether to traverse backwards
+
+    """
+
+    # Parameters
+    n_frames = len(data_seq)
+
+    # Define the f,ax and blank scatter plot obj
+    f,ax = plt.subplots(figsize = (5,5))
+    scatter = ax.scatter([],[], alpha = 0.1, s = 1)
+
+    # Define init callable (base case when animation begins)
+    def init():
+        ax.set_xlim(-3, 3)
+        ax.set_ylim(-3, 3)
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_title(title)
+        return (scatter,)
+    
+    # Define update callable for iterative animation building
+    def update(step):
+        # Stepping based on whether to reverse traversal or not
+        i = step
+        if reverse:
+          i = (n_frames - 1) - step
+
+        # Update the new frame
+        scatter.set_offsets(data_seq[i])
+        ax.set_title(f"{title} - {i+1}/{n_frames}")
+        return (scatter,)
+
+    # Create animation object
+    animation = FuncAnimation(f, update, frames= n_frames, init_func=init, blit=True)
+
+    # Export animation and close the figure
+    animation.save(save_path, writer="Justin", fps=10)
+    plt.close(f)
+    print("Finish saving gif file: ", save_path)
 
 
