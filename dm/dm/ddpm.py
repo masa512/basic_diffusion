@@ -281,37 +281,37 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
     # Load the betas
     alphas, betas = alpha_beta_scheduler(Tmax = Tmax,beta_min = 1e-4,beta_max = 3e-3)
 
-    # For loop
-    for t in reversed(range(1,Tmax)):
+    with torch.no_grad():
+        # For loop
+        for t in reversed(range(1,Tmax)):
 
-        # Time tensor
-        t_tensor = torch.full(size=(n_samples,1),fill_value=t/Tmax).to(device)
-        
-        # alpha and beta for current epoch
-        alpha_t,beta_t = alphas[t], betas[t]
+            # Time tensor
+            t_tensor = torch.full(size=(n_samples,1),fill_value=t/Tmax).to(device)
+            
+            # alpha and beta for current epoch
+            alpha_t,beta_t = alphas[t], betas[t]
 
-        # alpha_bar and beta_bar
-        alpha_geom_t_prev = np.prod(alphas[:t-1])
-        alpha_geom_t = alpha_t * alpha_geom_t_prev
+            # alpha_bar and beta_bar
+            alpha_geom_t_prev = np.prod(alphas[1:t])
+            alpha_geom_t = alpha_t * alpha_geom_t_prev
 
-        beta_geom_t = (1-alpha_geom_t_prev)/(1-alpha_geom_t) * beta_t
-        
+            beta_geom_t = (1-alpha_geom_t_prev)/np.sqrt(1-alpha_geom_t) * beta_t
+            
 
-        # model prediction of noise
-        X_t = X_t.to(device=device)
-        eps_t = model(X_t,t_tensor)
+            # model prediction of noise
+            X_t = X_t.to(device=device)
+            eps_t = model(X_t,t_tensor)
 
-        # Additive noise
-        Z_t = torch.randn(size=(n_samples,n_dims)) if t > 1 else 0
+            # Additive noise
+            Z_t = torch.randn(size=(n_samples,n_dims)) if t > 1 else 0
 
-        # X_{t-1}
-        eps_t = eps_t.to(device="cpu")
-        X_t = X_t.to(device="cpu")
+            # X_{t-1}
+            eps_t = eps_t.to(device="cpu")
+            X_t = X_t.to(device="cpu")
+            X_t = 1/np.sqrt(alpha_t) * (X_t - (1-alpha_t)/np.sqrt(1-alpha_geom_t) * eps_t) + np.sqrt(beta_t) * Z_t
 
-        X_t = 1/np.sqrt(alpha_geom_t) * (X_t - (1-alpha_t)/(1-alpha_geom_t) * eps_t) + beta_geom_t * Z_t
-        print(eps_t)
-        if t in states:
-          saved_frame.append(X_t.detach().numpy())
+            if t in states:
+              saved_frame.append(X_t.detach().numpy())
 
     return saved_frame 
 
