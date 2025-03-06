@@ -2,7 +2,7 @@ from sklearn.datasets import make_swiss_roll
 from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
-from dm.fwd_diffusion import alpha_beta_scheduler,closed_form_forward_target
+from dm.fwd_diffusion import alpha_beta_scheduler_torch,closed_form_forward_target_torch
 
 
 
@@ -54,7 +54,7 @@ class diffusion_dataset(Dataset):
     self.Tmax = Tmax
     self.beta_min = beta_min
     self.beta_max = beta_max
-    self.transforms = []
+    self.transforms = [torch.from_numpy]
 
   def __len__(self):
     return self.data.shape[0]
@@ -68,18 +68,18 @@ class diffusion_dataset(Dataset):
     if self.transforms:
       for trans in self.transforms:
         sample = trans(sample)
+        "Transformed to Torch"
 
     # Extract random index and scale by self.Tmax
-    t = (np.random.randint(0,self.Tmax))
-    
+    t = torch.randn(size = (1,self.Tmax))
+
     # Apply the closed form diffusion
-    x_t,eps = closed_form_forward_target(x,t,self.beta_min,self.beta_max,self.Tmax)
+    x_t,eps = closed_form_forward_target_torch(x,t,self.beta_min,self.beta_max,self.Tmax)
     
     # Convert all to necessary format and return as tuple
-    #x_0_tensor = torch.tensor(x).to(torch.float32)
-    t_tensor = torch.tensor(t).view(1).to(torch.float32)#/(self.Tmax-1)
-    x_t_tensor = torch.tensor(x_t).to(torch.float32)
-    eps_tensor = torch.tensor(eps).to(torch.float32)
+    t_tensor = t.view(1).to(torch.float32)#/(self.Tmax-1)
+    x_t_tensor = x_t.to(torch.float32)
+    eps_tensor = eps.to(torch.float32)
 
     output_sample = (x_t_tensor,t_tensor,eps_tensor)
     return output_sample
