@@ -3,7 +3,6 @@ dm/__init__.py
 dm/config.py
 dm/ddpm.py
 dm/fwd_diffusion.py
-dm/simple_network.py
 dm/util.py
 dm.egg-info/PKG-INFO
 dm.egg-info/SOURCES.txt
