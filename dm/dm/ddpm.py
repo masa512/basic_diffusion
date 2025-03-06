@@ -78,15 +78,14 @@ def train_ddpm(model,trainloader,optimizer,n_epochs = 10,device="cuda" if torch.
         total_loss = 0.0
         
         for batch in trainloader:
-            x, t = batch  # Load batch of data (noisy inputs, timesteps)
-            x, t = x.to(device), t.to(device)
+            x, t, eps = batch  # Load batch of data (noisy inputs, timesteps)
+            x, t, eps  = x.to(device), t.to(device), eps.to(device) 
             
             optimizer.zero_grad()  # Zero gradients
             
             noise_pred = model(x, t)  # Predict noise
-            target_noise = torch.randn_like(x).to(device)  # Ground truth noise (random normal noise)
             
-            loss = loss_fn(noise_pred, target_noise)  # Compute loss
+            loss = loss_fn(noise_pred, eps)  # Compute loss
             loss.backward()  # Backpropagate
             optimizer.step()  # Update model parameters
             
@@ -115,13 +114,12 @@ def test_ddpm(model,testloader,device="cuda" if torch.cuda.is_available() else "
     with torch.no_grad():
 
       for batch in testloader:
-            x, t = batch  # Load batch of data (noisy inputs, timesteps)
-            x, t = x.to(device), t.to(device)
+            x, t, eps = batch  # Load batch of data (noisy inputs, timesteps)
+            x, t, eps  = x.to(device), t.to(device), eps.to(device) 
             
             noise_pred = model(x, t)  # Predict noise
-            target_noise = torch.randn_like(x).to(device)  # Ground truth noise (random normal noise)
-            
-            loss = loss_fn(noise_pred, target_noise)  # Compute loss
+
+            loss = loss_fn(noise_pred, eps)  # Compute loss
             total_loss += loss.item()
     
     print(f"Test Loss: {total_loss / len(testloader)}")
