@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import torch
 
 ############# Beta Scheduler ################################
@@ -106,7 +107,7 @@ def closed_form_forward_target(data, t = 0,beta_min = 1e-4, beta_max = 0.02, Tma
     alphas,betas = alpha_beta_scheduler(Tmax = Tmax, beta_min = beta_min, beta_max = beta_max)
 
     # Dim
-    n_dim = data.shape[0]
+    n_dim = data.shape[-1]
 
     # First extract single beta and get alpha
     beta_t = betas[t]
@@ -140,10 +141,10 @@ def closed_form_forward_target_torch(data, t = 0,beta_min = 1e-4, beta_max = 0.0
     eps (n_dim,) : Noise used to distort (shall be predicted from NN)
     """
     # Initialize beta and alpha
-    alphas,betas = alpha_beta_scheduler(Tmax = Tmax, beta_min = beta_min, beta_max = beta_max)
+    alphas,betas = alpha_beta_scheduler_torch(Tmax = Tmax, beta_min = beta_min, beta_max = beta_max)
 
     # Dim
-    n_dim = data.size[0]
+    n_dim = data.size(-1)
 
     # First extract single beta and get alpha
     beta_t = betas[t]
@@ -156,7 +157,7 @@ def closed_form_forward_target_torch(data, t = 0,beta_min = 1e-4, beta_max = 0.0
     eps = torch.randn(size=(n_dim,))
     
     # Evaluate x_t
-    x_t = torch.sqrt(alpha_geom_t) * data + torch.sqrt(1-alpha_geom_t) * eps
+    x_t = math.sqrt(alpha_geom_t) * data + math.sqrt(1-alpha_geom_t) * eps
 
     return x_t, eps
 
