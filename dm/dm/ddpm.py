@@ -168,7 +168,7 @@ def sample_ddpm(model, n_samples = 1000, n_dims = 2, Tmax = 1000, beta_min = 1e-
     X_t = torch.randn(size=(n_samples,n_dims)).to(device)
 
     # Load the betas
-    alphas, betas = alpha_beta_scheduler(Tmax = Tmax,beta_min = 1e-4,beta_max = 3e-3)
+    alphas, betas = alpha_beta_scheduler(Tmax = Tmax,beta_min = beta_min,beta_max =beta_max)
 
     with torch.no_grad():
         # For loop

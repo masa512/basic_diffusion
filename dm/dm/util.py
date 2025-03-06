@@ -70,14 +70,14 @@ class diffusion_dataset(Dataset):
         sample = trans(sample)
 
     # Extract random index and scale by self.Tmax
-    t = (np.random.randint(1,self.Tmax)-1)
+    t = (np.random.randint(0,self.Tmax))
     
     # Apply the closed form diffusion
     x_t,eps = closed_form_forward_target(x,t,self.beta_min,self.beta_max,self.Tmax)
     
     # Convert all to necessary format and return as tuple
     #x_0_tensor = torch.tensor(x).to(torch.float32)
-    t_tensor = torch.tensor(t).view(1).to(torch.float32)/(self.Tmax-1)
+    t_tensor = torch.tensor(t).view(1).to(torch.float32)#/(self.Tmax-1)
     x_t_tensor = torch.tensor(x_t).to(torch.float32)
     eps_tensor = torch.tensor(eps).to(torch.float32)
 
