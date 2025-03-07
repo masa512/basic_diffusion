@@ -7,5 +7,6 @@ setup(
     install_requires=[
         "numpy",  # Add dependencies here
         "scipy",
-        "torch"]
+        "torch",
+        "tqdm"]
 )

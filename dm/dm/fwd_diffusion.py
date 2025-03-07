@@ -131,20 +131,17 @@ def closed_form_forward_target_torch(data, t = 0,beta_min = 1e-4, beta_max = 0.0
     linear variance schedule is used (Torch)
 
     -Input-
-    data (n_dim,) : Single Input data 
+    data (n_dims,) : Single Input data 
     beta_min,beta_max (double) : Bound for beta for variance scheduling
     t (int) : Target iteration
     Tmax (int) : Max iteration
 
     -Output-
-    target_data (n_dim,) : Single output data at epoch t 
-    eps (n_dim,) : Noise used to distort (shall be predicted from NN)
+    target_data (n_dims,) : Single output data at epoch t 
+    eps (n_dims,) : Noise used to distort (shall be predicted from NN)
     """
     # Initialize beta and alpha
     alphas,betas = alpha_beta_scheduler_torch(Tmax = Tmax, beta_min = beta_min, beta_max = beta_max)
-
-    # Dim
-    n_dim = data.size(-1)
 
     # First extract single beta and get alpha
     beta_t = betas[t]
@@ -154,11 +151,10 @@ def closed_form_forward_target_torch(data, t = 0,beta_min = 1e-4, beta_max = 0.0
     alpha_geom_t = torch.prod(alphas[:t], dim=0)
 
     # Epsilon
-    eps = torch.randn(size=(n_dim,))
-    
+    eps = torch.randn_like(data)
+
     # Evaluate x_t
     x_t = math.sqrt(alpha_geom_t) * data + math.sqrt(1-alpha_geom_t) * eps
-
     return x_t, eps
 
 

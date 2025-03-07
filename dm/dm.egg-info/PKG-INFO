@@ -4,3 +4,4 @@ Version: 0.1.1
 Requires-Dist: numpy
 Requires-Dist: scipy
 Requires-Dist: torch
+Requires-Dist: tqdm
