@@ -141,7 +141,7 @@ class decoder(nn.Module):
     def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , upsampler = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
 
         # Define output layer as just single convolution
-        self.output_blk = 
+        self.output_blk = 1
 
 
 
