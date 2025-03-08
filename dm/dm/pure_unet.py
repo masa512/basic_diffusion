@@ -67,6 +67,24 @@ class double_cbr_block(nn.Module):
         x = self.cbr2(x)
         return x
 
+class bottle_neck(nn.Module):
+
+    def __init__(self,in_channels,kernel_size,include_relu = True ,include_bn = True):
+
+        super().__init__()
+
+        self.bottle = double_cbr_block(
+                in_channels= in_channels,
+                out_channels= in_channels,
+                kernel_size = kernel_size,
+                include_relu= include_relu,
+                include_bn = include_bn
+        )
+    
+    def forward(self,x):
+
+        return self.bottle(x)
+
 class encoder(nn.Module):
     
     def __init__(self,input_channels,in_channels, kernel_size, depth = 1 ,include_relu = True ,include_bn = True):
@@ -111,11 +129,20 @@ class encoder(nn.Module):
         # each encoder block
         for i, e in enumerate(self.enc_seq):
             # First apply the conv layer
-            print(i,x.size(),e)
             r = e(x)
             res[i+1] = r
             # Apply pool
-            x = self.pool(x)
+            x = self.pool(r)
         
         return x,res
+
+class decoder(nn.Module):
+
+    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , upsampler = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
+
+        # Define output layer as just single convolution
+        self.output_blk = 
+
+
+
 
