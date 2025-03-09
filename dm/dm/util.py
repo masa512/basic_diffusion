@@ -1,6 +1,9 @@
 from sklearn.datasets import make_swiss_roll
 from torch.utils.data import Dataset, DataLoader
 import torch
+import torchvision.transforms as transforms
+from torchvision.datasets import MNIST
+
 import numpy as np
 from dm.fwd_diffusion import alpha_beta_scheduler_torch,closed_form_forward_target_torch
 import matplotlib.pyplot as plt
@@ -84,6 +87,24 @@ class diffusion_dataset(Dataset):
 
     output_sample = (x_t_tensor,t_tensor,eps_tensor)
     return output_sample
+
+
+############## MNIST CUSTOM DATASET #####################
+
+class NoisyMNIST(MNIST):
+    def __init__(self, root, train=True, transform=None, target_transform=None, noise_std=0.2, download=False):
+        super().__init__(root, train=train, transform=transform, target_transform=target_transform, download=download)
+        self.noise_std = noise_std  # Standard deviation of Gaussian noise
+
+    def __getitem__(self, index):
+        img, target = super().__getitem__(index)  # Get clean image and label
+
+        # Generate Gaussian noise
+        noise = torch.randn_like(img) * self.noise_std
+        noisy_img = img + noise  # Add noise to image
+
+        return img, noisy_img, target  # Return clean image, noisy image, and label
+
 
 
 ############## DATASET/DATALOADER METHODS ####################
