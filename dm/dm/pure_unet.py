@@ -1,7 +1,7 @@
 
 
 
-import torch.functional as F 
+import torch.nn.functional as F 
 import torch.nn as nn
 ######## Pure Unet Implementation ###############
 
@@ -85,6 +85,21 @@ class bottle_neck(nn.Module):
 
         return self.bottle(x)
 
+class decoder(nn.Module):
+
+    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , mode = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
+        super().__init__()
+        self.depth = depth
+        self.upsample = nn.ModuleList()
+
+    def forward(self,x):
+
+        for d in self.upsample:
+
+            x = d(x)
+        
+        return x
+
 class encoder(nn.Module):
     
     def __init__(self,input_channels,in_channels, kernel_size, depth = 1 ,include_relu = True ,include_bn = True):
@@ -135,14 +150,21 @@ class encoder(nn.Module):
             x = self.pool(r)
         
         return x,res
+"""
+class Interpolate(nn.Module):
+    def __init__(self, scale, mode):
+        super().__init__()
+        self.interp = nn.functional.interpolate
+        self.scale = scale # Int
+        self.mode = mode
+        
+    def forward(self, x):
+        x = self.interp(x, scale=self.scale, mode=self.mode, align_corners=False)
+        return x
+"""
 
-class decoder(nn.Module):
 
-    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , upsampler = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
-
-        # Define output layer as just single convolution
-        self.output_blk = 1
-
+        
 
 
 

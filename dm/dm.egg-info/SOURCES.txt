@@ -3,7 +3,7 @@ dm/__init__.py
 dm/config.py
 dm/ddpm.py
 dm/fwd_diffusion.py
-dm/unet.py
+dm/pure_unet.py
 dm/util.py
 dm.egg-info/PKG-INFO
 dm.egg-info/SOURCES.txt
