@@ -153,7 +153,7 @@ class Interpolate(nn.Module):
 
 class decoder(nn.Module):
 
-    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , mode = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
+    def __init__(self,in_channels, output_channels, kernel_size, depth = 1, include_relu = True ,include_bn = True):
         super().__init__()
         self.depth = depth
 
@@ -206,7 +206,6 @@ class decoder(nn.Module):
         for r,u,d in zip(reversed(res.values()),self.upsample,self.dec_conv):
 
             # First the upsampe before combining
-            print('Before upsample :',x.size())
             x_u = u(x)
             # Concatenate
             x_c = torch.cat((x_u,r), dim=1) # Channel dim cat
@@ -217,4 +216,29 @@ class decoder(nn.Module):
         return self.output_conv(x)
 
 
+class unet(nn.Module):
 
+    def __init__(self, input_channels, base_channels, output_channels, kernel_size, depth, include_relu = True ,include_bn = True):
+
+        super().__init__()
+
+        # Define the encoder,decoder, bottle neck
+
+        enc_out_channels = base_channels * (2**(depth))
+        dec_in_channels = base_channels * (2**(depth+1))
+
+        self.encoder = encoder(input_channels,base_channels, kernel_size, depth ,include_relu ,include_bn)
+        self.bottle_neck = bottle_neck(enc_out_channels,kernel_size,include_relu,include_bn)
+        self.decoder = decoder(dec_in_channels, output_channels, kernel_size, depth, include_relu ,include_bn)
+
+    
+    def forward(self,x):
+
+        # Encoder pass
+        y, res = self.encoder(x)
+        # Bottleneck pass
+        y = self.bottle_neck(y)
+        # Decoder pass
+        out = self.decoder(y,res)
+
+        return out
