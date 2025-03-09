@@ -150,7 +150,7 @@ class encoder(nn.Module):
             x = self.pool(r)
         
         return x,res
-"""
+
 class Interpolate(nn.Module):
     def __init__(self, scale, mode):
         super().__init__()
@@ -161,7 +161,7 @@ class Interpolate(nn.Module):
     def forward(self, x):
         x = self.interp(x, scale=self.scale, mode=self.mode, align_corners=False)
         return x
-"""
+
 
 
         
