@@ -1,6 +1,6 @@
 
 
-
+import torch
 import torch.nn.functional as F 
 import torch.nn as nn
 ######## Pure Unet Implementation ###############
@@ -75,7 +75,7 @@ class bottle_neck(nn.Module):
 
         self.bottle = double_cbr_block(
                 in_channels= in_channels,
-                out_channels= in_channels,
+                out_channels= 2*in_channels,
                 kernel_size = kernel_size,
                 include_relu= include_relu,
                 include_bn = include_bn
@@ -85,20 +85,7 @@ class bottle_neck(nn.Module):
 
         return self.bottle(x)
 
-class decoder(nn.Module):
 
-    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , mode = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
-        super().__init__()
-        self.depth = depth
-        self.upsample = nn.ModuleList()
-
-    def forward(self,x):
-
-        for d in self.upsample:
-
-            x = d(x)
-        
-        return x
 
 class encoder(nn.Module):
     
@@ -135,11 +122,13 @@ class encoder(nn.Module):
     
     def forward(self,x):
 
-        # Input
-        x = self.input_block(x)
-
-        # Residual outputs
+        # Initialize
         res = {}
+
+        # Input Layer
+        r = self.input_block(x)
+        res[0] = r
+        x = self.pool(r)
 
         # each encoder block
         for i, e in enumerate(self.enc_seq):
@@ -162,9 +151,70 @@ class Interpolate(nn.Module):
         x = self.interp(x, scale=self.scale, mode=self.mode, align_corners=False)
         return x
 
+class decoder(nn.Module):
+
+    def __init__(self,in_channels, output_channels, kernel_size, depth = 1 , mode = 'transpose', tconv_kernel_size = 1, skip = True, include_relu = True ,include_bn = True):
+        super().__init__()
+        self.depth = depth
+
+        # Add the module list for non-final layers
+        self.upsample = nn.ModuleList(
+            [nn.ConvTranspose2d(in_channels=in_channels//(2**(i)),
+                              out_channels=in_channels//(2**(i+1)),
+                              kernel_size=2,
+                              stride = 2
+                            ) for i in range(depth)]
+        )
+        self.dec_conv = nn.ModuleList(
+            [double_cbr_block(in_channels=in_channels//(2**(i)),
+                              out_channels=in_channels//(2**(i+1)),
+                              kernel_size=kernel_size,
+                              include_relu= include_relu,
+                              include_bn = include_bn
+
+                            ) for i in range(depth)]
+        )
+
+        # Append the ones for the final layer
+
+        self.upsample.append(
+            nn.ConvTranspose2d(in_channels=in_channels//(2**(depth)),
+                              out_channels=in_channels//(2**(depth+1)),
+                              kernel_size=2,
+                              stride = 2)
+        )
+        self.dec_conv.append(
+            double_cbr_block(in_channels=in_channels//(2**(depth)),
+                              out_channels=in_channels//(2**(depth+1)),
+                              kernel_size=kernel_size,
+                              include_relu= include_relu,
+                              include_bn = include_bn
+                            )
+        )
 
 
+        self.output_conv = nn.Conv2d(
+            in_channels=in_channels//(2**(depth+1)),
+            out_channels=output_channels,
+            kernel_size= 1,
+            stride = 1,
+            padding = 0
+        )
+
+    def forward(self,x,res):
+        # APPLY THE Decoding layers
+        for r,u,d in zip(reversed(res.values()),self.upsample,self.dec_conv):
+
+            # First the upsampe before combining
+            print('Before upsample :',x.size())
+            x_u = u(x)
+            # Concatenate
+            x_c = torch.cat((x_u,r), dim=1) # Channel dim cat
+            # Apply channel convolution
+            x = d(x_c)
         
+        # APPLY Single Conv to match channel
+        return self.output_conv(x)
 
 
 
