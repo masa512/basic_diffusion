@@ -3,6 +3,7 @@ dm/__init__.py
 dm/config.py
 dm/ddpm.py
 dm/fwd_diffusion.py
+dm/img_seg.py
 dm/pure_unet.py
 dm/util.py
 dm.egg-info/PKG-INFO
